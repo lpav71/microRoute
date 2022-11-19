@@ -6,7 +6,9 @@ namespace System;
 use PDO;
 class DB
 {
-    public static function Connect() {
+    protected $pdo;
+
+    public function Connect() {
         $data = Configurator::GetDBConfiguration();
 
         $user = $data['DBUSER'];
@@ -14,6 +16,6 @@ class DB
         $host = $data['DBHOST'];
         $db   = $data['DBNAME'];
         
-        return new PDO("mysql:dbname=$db;host=$host", $user, $pass);
+        $this->pdo = new PDO("mysql:dbname=$db;host=$host", $user, $pass);
     }
 }
