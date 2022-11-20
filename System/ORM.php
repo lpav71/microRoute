@@ -34,12 +34,12 @@ class ORM extends DB
         $this->type = ""; // Сбрасываем type после запроса
     }
 
-    public function select(){ // Реализовываем метод для получения данных из БД
+    public function select(array $fields = []){ // Реализовываем метод для получения данных из БД
         $this->sql_query = "SELECT * FROM `$this->model` "; // Начинаем формировать строку запроса
         return $this; // Здесь $this вернёт объект
     }
 
-    public function where($where, $op = '='){ // Метод для обработки условия выборки
+    public function where(array $where, $op = '='){ // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
         foreach($where as $k => $v){ // Превращаем строку в массив подготовленных значений
             $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
