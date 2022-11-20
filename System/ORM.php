@@ -2,11 +2,11 @@
 
 // Формат запроса
 
-// $ORM->Insert('users')
+// $table_name->Insert()
 //     ->values(['name'=>'username','email'=>'email'])
 //     ->execute();
 
-// $ORM->Select('users')
+// $table_name->Select()
 //     ->where(['name' => 'tester'])
 //     ->execute();
 
@@ -18,16 +18,14 @@ class ORM extends DB
     private $sql_query;	// Сам запрос
     private $values_for_exec; // Массив значений для экранирования
     private $type;
-//    public static $instance; // Переменная для реализации Singleton
     private $model;
 
     public function __construct()
     {
-        $calledClass = get_called_class();
-        $this->model = explode('\\', $calledClass)[1];
-        $this->set_default(); // Сбрасываем все значения
-        $this->Connect();     //Коннект к БД
-        return $this;
+        $this->model = explode('\\', get_called_class())[1];  // Получаем вызвавшую модель
+        $this->set_default();   // Сбрасываем все значения
+        $this->Connect();       //Коннект к БД
+        return $this;           //Возвращаем модель
     }
 
     private function set_default(){
@@ -109,20 +107,14 @@ class ORM extends DB
         return $this;
     }
 
-//    public static function Instance(){ // Метод для проверки было ли уже создано соединение с БД
-//        if(self::$instance == NULL){
-//            self::$instance = new ORM();
-//        }
-//        return self::$instance;
-//    }
-
     public function execute(){
         $q = $this->pdo->prepare($this->sql_query);
         $q->execute($this->values_for_exec);
+        $this->set_default(); // Сбрасываем все значения
 
         if($q->errorCode() != PDO::ERR_NONE){
             $info = $q->errorInfo();
-            die($info[2]);
+            return $info;
         }
         return $q->fetchall();
     }
