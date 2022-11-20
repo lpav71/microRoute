@@ -18,12 +18,16 @@ class ORM extends DB
     private $sql_query;	// Сам запрос
     private $values_for_exec; // Массив значений для экранирования
     private $type;
-    public static $instance; // Переменная для реализации Singleton
+//    public static $instance; // Переменная для реализации Singleton
+    private $model;
 
     public function __construct()
     {
+        $calledClass = get_called_class();
+        $this->model = explode('\\', $calledClass)[1];
         $this->set_default(); // Сбрасываем все значения
         $this->Connect();     //Коннект к БД
+        return $this;
     }
 
     private function set_default(){
@@ -32,8 +36,8 @@ class ORM extends DB
         $this->type = ""; // Сбрасываем type после запроса
     }
 
-    public function select($table){ // Реализовываем метод для получения данных из БД
-        $this->sql_query = "SELECT * FROM `$table` "; // Начинаем формировать строку запроса
+    public function select(){ // Реализовываем метод для получения данных из БД
+        $this->sql_query = "SELECT * FROM `$this->model` "; // Начинаем формировать строку запроса
         return $this; // Здесь $this вернёт объект
     }
 
@@ -48,13 +52,13 @@ class ORM extends DB
         return $this;
     }
 
-    public function insert($table){
-        $this->sql_query = "INSERT INTO `$table` ";
+    public function insert(){
+        $this->sql_query = "INSERT INTO `$this->model` ";
         $this->type = 'insert'; // Добавляем тип запроса
         return $this;
     }
     public function update($table){
-        $this->sql_query = "UPDATE `$table` ";
+        $this->sql_query = "UPDATE `$this->model` ";
         $this->type = 'update'; // Добавляем тип запроса
         return $this;
     }
@@ -83,8 +87,8 @@ class ORM extends DB
         return $this;
     }
 
-    public function delete($table){ // Метод для удаления записей из таблицы
-        $this->sql_query = "DELETE FROM `$table`"; // Формируем запрос
+    public function delete(){ // Метод для удаления записей из таблицы
+        $this->sql_query = "DELETE FROM `$this->model`"; // Формируем запрос
         $this->type = 'delete';
         return $this;
     }
@@ -105,12 +109,12 @@ class ORM extends DB
         return $this;
     }
 
-    public static function Instance(){ // Метод для проверки было ли уже создано соединение с БД
-        if(self::$instance == NULL){
-            self::$instance = new ORM();
-        }
-        return self::$instance;
-    }
+//    public static function Instance(){ // Метод для проверки было ли уже создано соединение с БД
+//        if(self::$instance == NULL){
+//            self::$instance = new ORM();
+//        }
+//        return self::$instance;
+//    }
 
     public function execute(){
         $q = $this->pdo->prepare($this->sql_query);

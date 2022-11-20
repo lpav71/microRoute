@@ -1,14 +1,14 @@
 <?php
 
 namespace Controllers;
-use System\ORM;
+use Models\Region;
 use System\View;
 
 class Home
 {
     public static function Index() {
-        $sql = ORM::Instance();
-        $rows = $sql->select('region')->limit(0,5)->execute();
+        $region = new Region();
+        $rows = $region->select()->execute();
         View::Render('home');
     }
 }

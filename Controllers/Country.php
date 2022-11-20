@@ -2,6 +2,7 @@
 
 namespace Controllers;
 
+use Models\Region;
 use System\DB;
 use System\View;
 
@@ -9,10 +10,8 @@ class Country
 {
     public static function Test()
     {
-        $db = DB::Connect();
-        $query = 'SELECT * FROM region';
-        $stmt = $db->query($query);
-        $countries = $stmt->fetchAll();
+        $region = new Region();
+        $countries = $region->select()->execute();
         View::Render('country', compact('countries'));
     }
 }

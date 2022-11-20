@@ -6,7 +6,7 @@ namespace System;
 use PDO;
 class DB
 {
-    protected $pdo;
+    public $pdo;
 
     public function Connect() {
         $data = Configurator::GetDBConfiguration();
