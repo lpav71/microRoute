@@ -8,7 +8,7 @@ class Home
 {
     public static function Index() {
         $region = new Region();
-        $rows = $region->select()->execute();
+        $rows = $region->select()->limit(0,5)->execute();
         View::Render('home');
     }
 }

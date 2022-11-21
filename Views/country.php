@@ -2,7 +2,7 @@
     <div class="container">
         <table class="table table-hover" style="margin-top: 35px;">
             <tbody>
-            <?php foreach ($countries as $c) : ?>
+            <?php foreach ($rows as $c) : ?>
                 <tr>
                     <td><?= $c['id'] ?></td>
                     <td><?= $c['name'] ?></td>

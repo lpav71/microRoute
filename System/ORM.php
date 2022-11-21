@@ -2,13 +2,13 @@
 
 // Формат запроса
 
-// $table_name->Insert()
+// $table_name->insert()
 //     ->values(['name'=>'username','email'=>'email'])
 //     ->execute();
 
-// $table_name->Select()
+// $table_name->select()
 //     ->where(['name' => 'tester'])
-//     ->execute();
+//     ->get();
 
 namespace System;
 
@@ -19,6 +19,15 @@ class ORM extends DB
     private $values_for_exec; // Массив значений для экранирования
     private $type;
     private $model;
+    private $response;
+
+    /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
 
     public function __construct()
     {
@@ -35,8 +44,23 @@ class ORM extends DB
     }
 
     public function select(array $fields = []){ // Реализовываем метод для получения данных из БД
-        $this->sql_query = "SELECT * FROM `$this->model` "; // Начинаем формировать строку запроса
+        $vals = array(); // Массив значений, которые будут "подготовленными"
+        if (!empty($fields)) {
+            foreach($fields as $v){ // Превращаем строку в массив подготовленных значений
+                $vals[] = "$v"; // Формируем строку, добавляя операцию
+            }
+            $str = implode(', ',$vals);
+            $this->sql_query = "SELECT $str FROM `$this->model` "; // Начинаем формировать строку запроса
+        }
+        else {
+            $this->sql_query = "SELECT * FROM `$this->model` "; // Начинаем формировать строку запроса
+        }
         return $this; // Здесь $this вернёт объект
+    }
+
+    public function join($tableName, $field1, $field2) {
+        $this->sql_query .= " JOIN $tableName ON $field1 = $field2";
+        return $this;
     }
 
     public function where(array $where, $op = '='){ // Метод для обработки условия выборки
@@ -55,7 +79,7 @@ class ORM extends DB
         $this->type = 'insert'; // Добавляем тип запроса
         return $this;
     }
-    public function update($table){
+    public function update(){
         $this->sql_query = "UPDATE `$this->model` ";
         $this->type = 'update'; // Добавляем тип запроса
         return $this;
@@ -91,13 +115,17 @@ class ORM extends DB
         return $this;
     }
 
+    public function group_by($field){
+        $this->sql_query .= " GROUP BY " . $field;
+        return $this;
+    }
+
     public function order_by($val, $type){ // Создаем метод для выборки данных, отсортированных определенным образом
         $this->sql_query .= "ORDER BY `$val` $type"; // Модифицируем строку запроса
         return $this;
     }
 
     public function limit($from, $to = NULL){ // Создаем метод для выборки определенного количества записей
-        $res_str = "";
         if($to == NULL){
             $res_str = $from;
         }else{
@@ -107,15 +135,56 @@ class ORM extends DB
         return $this;
     }
 
-    public function execute(){
+    // Получить массив записей
+    public function all(){
         $q = $this->pdo->prepare($this->sql_query);
-        $q->execute($this->values_for_exec);
+        $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
         if($q->errorCode() != PDO::ERR_NONE){
             $info = $q->errorInfo();
             return $info;
         }
-        return $q->fetchall();
+        return $q->fetchall(PDO::FETCH_ASSOC);
+    }
+
+    // Получить одну запись
+    public function get(){
+        $q = $this->pdo->prepare($this->sql_query);
+        $status = $q->execute($this->values_for_exec);
+        $this->set_default(); // Сбрасываем все значения
+
+        if($q->errorCode() != PDO::ERR_NONE){
+            $info = $q->errorInfo();
+            return $info;
+        }
+        return $q->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Выполнить запрос не требующий ответа
+    public function execute(){
+        $q = $this->pdo->prepare($this->sql_query);
+        $status = $q->execute($this->values_for_exec);
+        $this->set_default(); // Сбрасываем все значения
+
+        if($q->errorCode() != PDO::ERR_NONE){
+            $info = $q->errorInfo();
+            return $info;
+        }
+        return $status;
+    }
+
+    // Получить ответ в виде объекта
+    public function getObject(){
+        $q = $this->pdo->prepare($this->sql_query);
+        $status = $q->execute($this->values_for_exec);
+        $this->set_default(); // Сбрасываем все значения
+
+        if($q->errorCode() != PDO::ERR_NONE){
+            $info = $q->errorInfo();
+            return $info;
+        }
+        $this->response = $q->fetchall(PDO::FETCH_ASSOC);
+        return $this;
     }
 }
