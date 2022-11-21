@@ -11,7 +11,8 @@ class Country
     public static function Test()
     {
         $region = new Region();
-//        $region->insert()->values(['name'=>'ssss'])->execute();
+        $region->insert()->values(['name'=>'ssss'])->execute();
+        $id = $region->lastInsertId();
 //        $region->update()->values(['name'=>'sssss'])->where(['id'=>'44'])->execute();
 //        $region->delete()->where(['id'=>'44'])->execute();
         $rows = $region->select(['region.id AS region_id', 'region.name AS region_name', 'locality.name AS locality_name'])

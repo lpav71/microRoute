@@ -19,7 +19,7 @@ class ORM extends DB
     private $values_for_exec; // Массив значений для экранирования
     private $type;
     private $model;
-    private $response;
+    private $response = [];
 
     /**
      * @return mixed
@@ -27,6 +27,14 @@ class ORM extends DB
     public function getResponse()
     {
         return $this->response;
+    }
+
+    /**
+     * @param array $response
+     */
+    public function setResponse(array $response): void
+    {
+        $this->response = $response;
     }
 
     public function __construct()
@@ -135,6 +143,11 @@ class ORM extends DB
         return $this;
     }
 
+    // Возвращает ID последней вставленной строки
+    public function lastInsertId(){
+        return $this->pdo->lastInsertId();
+    }
+
     // Получить массив записей
     public function all(){
         $q = $this->pdo->prepare($this->sql_query);
@@ -174,7 +187,7 @@ class ORM extends DB
         return $status;
     }
 
-    // Получить ответ в виде объекта
+    // Получить ответ в виде объекта модели
     public function getObject(){
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
@@ -184,7 +197,7 @@ class ORM extends DB
             $info = $q->errorInfo();
             return $info;
         }
-        $this->response = $q->fetchall(PDO::FETCH_ASSOC);
+        array_push($this->response, $q->fetchall(PDO::FETCH_ASSOC));
         return $this;
     }
 }
