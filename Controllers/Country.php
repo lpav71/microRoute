@@ -22,7 +22,8 @@ class Country
         //$row = $region->select()->where(['name'=>'%Ира%'], 'LIKE')->all();
         //$pdo = $region->getPdo();
         //$row = $region->select()->whereIn('name',["'Иран'", "'Ирак'"])->all();
-        $row = $region->select()->whereBetween('id', '1', '10')->all();
+//        $row = $region->select()->whereBetween('id', '1', '10')->all();
+        $row = $region->select(['name'])->where(['id'=>1])->getOne();
         //View::Render('country', compact('countries'));
     }
 }

@@ -100,7 +100,6 @@ class ORM extends DB
     }
 
     public function whereIsNull($field){
-        $val = implode(',',$values);
         $this->sql_query .= " WHERE $field IS NULL";
         return $this;
     }
@@ -229,6 +228,20 @@ class ORM extends DB
             return $info;
         }
         return $q->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Получить одно значение
+    public function getOne(){
+        $q = $this->pdo->prepare($this->sql_query);
+        $status = $q->execute($this->values_for_exec);
+        $this->set_default(); // Сбрасываем все значения
+
+        if($q->errorCode() != PDO::ERR_NONE){
+            $info = $q->errorInfo();
+            return $info;
+        }
+        $result = $q->fetch();
+        return $result[0];
     }
 
     // Выполнить запрос не требующий ответа
