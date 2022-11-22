@@ -8,6 +8,14 @@ class DB
 {
     public $pdo;
 
+    /**
+     * @return mixed
+     */
+    public function getPdo()
+    {
+        return $this->pdo;
+    }
+
     public function Connect() {
         $data = Configurator::GetDBConfiguration();
 

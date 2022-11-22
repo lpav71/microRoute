@@ -21,6 +21,11 @@ class ORM extends DB
     private $model;
     private $response = [];
 
+    public function getPdo()
+    {
+        return parent::getPdo();
+    }
+
     /**
      * @return mixed
      */
@@ -39,7 +44,9 @@ class ORM extends DB
 
     public function __construct()
     {
-        $this->model = explode('\\', get_called_class())[1];  // Получаем вызвавшую модель
+        $modelPath = explode('\\', get_called_class());
+        $countModelPath = count($modelPath);
+        $this->model = $modelPath[$countModelPath - 1];// Получаем вызвавшую модель
         $this->set_default();   // Сбрасываем все значения
         $this->Connect();       //Коннект к БД
         return $this;           //Возвращаем модель
@@ -71,6 +78,27 @@ class ORM extends DB
         return $this;
     }
 
+    public function leftJoin($tableName, $field1, $field2) {
+        $this->sql_query .= " LEFT JOIN $tableName ON $field1 = $field2";
+        return $this;
+    }
+
+    public function rightJoin($tableName, $field1, $field2) {
+        $this->sql_query .= " RIGHT JOIN $tableName ON $field1 = $field2";
+        return $this;
+    }
+
+    public function whereBetween($field, $from, $to) {
+        $this->sql_query .= " WHERE $field BETWEEN $from AND $to";
+        return $this;
+    }
+
+    public function whereIn($field, array $values){
+        $val = implode(',',$values);
+        $this->sql_query .= " WHERE $field IN ($val)";
+        return $this;
+    }
+
     public function where(array $where, $op = '='){ // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
         foreach($where as $k => $v){ // Превращаем строку в массив подготовленных значений
@@ -79,6 +107,17 @@ class ORM extends DB
         }
         $str = implode(' AND ',$vals);
         $this->sql_query .= " WHERE " . $str; // Модифицируем наш запрос
+        return $this;
+    }
+
+    public function and(array $and, $op = '='){ // Метод для обработки условия выборки
+        $vals = array(); // Массив значений, которые будут "подготовленными"
+        foreach($and as $k => $v){ // Превращаем строку в массив подготовленных значений
+            $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
+            $this->values_for_exec[":".$k] = $v; // Заполняем массив полученными значениями
+        }
+        $str = implode(' AND ',$vals);
+        $this->sql_query .= " AND " . $str; // Модифицируем наш запрос
         return $this;
     }
 
@@ -188,7 +227,7 @@ class ORM extends DB
     }
 
     // Получить ответ в виде объекта модели
-    public function getObject(){
+    public function getModel(){
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
