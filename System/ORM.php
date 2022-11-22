@@ -99,11 +99,18 @@ class ORM extends DB
         return $this;
     }
 
+    public function whereIsNull($field){
+        $val = implode(',',$values);
+        $this->sql_query .= " WHERE $field IS NULL";
+        return $this;
+    }
+
     public function where(array $where, $op = '='){ // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
         foreach($where as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$k] = $v; // Заполняем массив полученными значениями
+            $knew=str_replace('.','',$k);
+            $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
+            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
         }
         $str = implode(' AND ',$vals);
         $this->sql_query .= " WHERE " . $str; // Модифицируем наш запрос
@@ -118,6 +125,17 @@ class ORM extends DB
         }
         $str = implode(' AND ',$vals);
         $this->sql_query .= " AND " . $str; // Модифицируем наш запрос
+        return $this;
+    }
+
+    public function or(array $and, $op = '='){ // Метод для обработки условия выборки
+        $vals = array(); // Массив значений, которые будут "подготовленными"
+        foreach($and as $k => $v){ // Превращаем строку в массив подготовленных значений
+            $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
+            $this->values_for_exec[":".$k] = $v; // Заполняем массив полученными значениями
+        }
+        $str = implode(' OR ',$vals);
+        $this->sql_query .= " OR " . $str; // Модифицируем наш запрос
         return $this;
     }
 
