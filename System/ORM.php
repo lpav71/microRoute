@@ -119,19 +119,21 @@ class ORM extends DB
     public function and(array $and, $op = '='){ // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
         foreach($and as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$k] = $v; // Заполняем массив полученными значениями
+            $knew=str_replace('.','',$k);
+            $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
+            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
         }
         $str = implode(' AND ',$vals);
         $this->sql_query .= " AND " . $str; // Модифицируем наш запрос
         return $this;
     }
 
-    public function or(array $and, $op = '='){ // Метод для обработки условия выборки
+    public function or(array $or, $op = '='){ // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
-        foreach($and as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $vals[] = "`$k` $op :$k"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$k] = $v; // Заполняем массив полученными значениями
+        foreach($or as $k => $v){ // Превращаем строку в массив подготовленных значений
+            $knew=str_replace('.','',$k);
+            $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
+            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
         }
         $str = implode(' OR ',$vals);
         $this->sql_query .= " OR " . $str; // Модифицируем наш запрос
@@ -241,7 +243,8 @@ class ORM extends DB
             return $info;
         }
         $result = $q->fetch();
-        return $result[0];
+        $e = $result[array_key_first($result)];
+        return $e;
     }
 
     // Выполнить запрос не требующий ответа
