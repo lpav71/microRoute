@@ -23,7 +23,8 @@ class Country
         //$pdo = $region->getPdo();
         //$row = $region->select()->whereIn('name',["'Иран'", "'Ирак'"])->all();
 //        $row = $region->select()->whereBetween('id', '1', '10')->all();
-        $row = $region->select(['COUNT(*)'])->getOne();
-        //View::Render('country', compact('countries'));
+        $rows = $region->select()->all();
+        //$row = $region->select(['COUNT(*)'])->getOne();
+        View::Render('country', compact('rows'));
     }
 }

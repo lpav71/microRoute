@@ -13,13 +13,31 @@
 namespace System;
 
 use PDO;
+
 class ORM extends DB
 {
-    private $sql_query;	// Сам запрос
+    private $sql_query;    // Сам запрос
     private $values_for_exec; // Массив значений для экранирования
     private $type;
     private $model;
     private $response = [];
+
+    public function __construct()
+    {
+        $modelPath = explode('\\', get_called_class());
+        $countModelPath = count($modelPath);
+        $this->model = $modelPath[$countModelPath - 1];// Получаем вызвавшую модель
+        $this->set_default();   // Сбрасываем все значения
+        $this->Connect();       //Коннект к БД
+        return $this;           //Возвращаем модель
+    }
+
+    private function set_default()
+    {
+        $this->sql_query = ""; // Сбрасываем строку запроса
+        $this->values_for_exec = array(); // Сбрасываем массив значений для экранирования
+        $this->type = ""; // Сбрасываем type после запроса
+    }
 
     public function getPdo()
     {
@@ -42,159 +60,163 @@ class ORM extends DB
         $this->response = $response;
     }
 
-    public function __construct()
-    {
-        $modelPath = explode('\\', get_called_class());
-        $countModelPath = count($modelPath);
-        $this->model = $modelPath[$countModelPath - 1];// Получаем вызвавшую модель
-        $this->set_default();   // Сбрасываем все значения
-        $this->Connect();       //Коннект к БД
-        return $this;           //Возвращаем модель
-    }
-
-    private function set_default(){
-        $this->sql_query = ""; // Сбрасываем строку запроса
-        $this->values_for_exec = array(); // Сбрасываем массив значений для экранирования
-        $this->type = ""; // Сбрасываем type после запроса
-    }
-
-    public function select(array $fields = []){ // Реализовываем метод для получения данных из БД
+    public function select(array $fields = [])
+    { // Реализовываем метод для получения данных из БД
         $vals = array(); // Массив значений, которые будут "подготовленными"
         if (!empty($fields)) {
-            foreach($fields as $v){ // Превращаем строку в массив подготовленных значений
+            foreach ($fields as $v) { // Превращаем строку в массив подготовленных значений
                 $vals[] = "$v"; // Формируем строку, добавляя операцию
             }
-            $str = implode(', ',$vals);
+            $str = implode(', ', $vals);
             $this->sql_query = "SELECT $str FROM `$this->model` "; // Начинаем формировать строку запроса
-        }
-        else {
+        } else {
             $this->sql_query = "SELECT * FROM `$this->model` "; // Начинаем формировать строку запроса
         }
         return $this; // Здесь $this вернёт объект
     }
 
-    public function join($tableName, $field1, $field2) {
+    public function join($tableName, $field1, $field2)
+    {
         $this->sql_query .= " JOIN $tableName ON $field1 = $field2";
         return $this;
     }
 
-    public function leftJoin($tableName, $field1, $field2) {
+    public function leftJoin($tableName, $field1, $field2)
+    {
         $this->sql_query .= " LEFT JOIN $tableName ON $field1 = $field2";
         return $this;
     }
 
-    public function rightJoin($tableName, $field1, $field2) {
+    public function rightJoin($tableName, $field1, $field2)
+    {
         $this->sql_query .= " RIGHT JOIN $tableName ON $field1 = $field2";
         return $this;
     }
 
-    public function whereBetween($field, $from, $to) {
+    public function whereBetween($field, $from, $to)
+    {
         $this->sql_query .= " WHERE $field BETWEEN $from AND $to";
         return $this;
     }
 
-    public function whereIn($field, array $values){
-        $val = implode(',',$values);
+    public function whereIn($field, array $values)
+    {
+        $val = implode(',', $values);
         $this->sql_query .= " WHERE $field IN ($val)";
         return $this;
     }
 
-    public function whereIsNull($field){
+    public function whereIsNull($field)
+    {
         $this->sql_query .= " WHERE $field IS NULL";
         return $this;
     }
 
-    public function where(array $where, $op = '='){ // Метод для обработки условия выборки
+    public function where(array $where, $op = '=')
+    { // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
-        foreach($where as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $knew=str_replace('.','',$k);
+        foreach ($where as $k => $v) { // Превращаем строку в массив подготовленных значений
+            $knew = str_replace('.', '', $k);
             $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
+            $this->values_for_exec[":" . $knew] = $v; // Заполняем массив полученными значениями
         }
-        $str = implode(' AND ',$vals);
+        $str = implode(' AND ', $vals);
         $this->sql_query .= " WHERE " . $str; // Модифицируем наш запрос
         return $this;
     }
 
-    public function and(array $and, $op = '='){ // Метод для обработки условия выборки
+    public function and(array $and, $op = '=')
+    { // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
-        foreach($and as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $knew=str_replace('.','',$k);
+        foreach ($and as $k => $v) { // Превращаем строку в массив подготовленных значений
+            $knew = str_replace('.', '', $k);
             $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
+            $this->values_for_exec[":" . $knew] = $v; // Заполняем массив полученными значениями
         }
-        $str = implode(' AND ',$vals);
+        $str = implode(' AND ', $vals);
         $this->sql_query .= " AND " . $str; // Модифицируем наш запрос
         return $this;
     }
 
-    public function or(array $or, $op = '='){ // Метод для обработки условия выборки
+    public function or(array $or, $op = '=')
+    { // Метод для обработки условия выборки
         $vals = array(); // Массив значений, которые будут "подготовленными"
-        foreach($or as $k => $v){ // Превращаем строку в массив подготовленных значений
-            $knew=str_replace('.','',$k);
+        foreach ($or as $k => $v) { // Превращаем строку в массив подготовленных значений
+            $knew = str_replace('.', '', $k);
             $vals[] = "$k $op :$knew"; // Формируем строку, добавляя операцию
-            $this->values_for_exec[":".$knew] = $v; // Заполняем массив полученными значениями
+            $this->values_for_exec[":" . $knew] = $v; // Заполняем массив полученными значениями
         }
-        $str = implode(' OR ',$vals);
+        $str = implode(' OR ', $vals);
         $this->sql_query .= " OR " . $str; // Модифицируем наш запрос
         return $this;
     }
 
-    public function insert(){
+    public function insert()
+    {
         $this->sql_query = "INSERT INTO `$this->model` ";
         $this->type = 'insert'; // Добавляем тип запроса
         return $this;
     }
-    public function update(){
+
+    public function update()
+    {
         $this->sql_query = "UPDATE `$this->model` ";
         $this->type = 'update'; // Добавляем тип запроса
         return $this;
     }
-    public function values($arr_val){
+
+    public function values($arr_val)
+    {
         $cols = array();
         $masks = array();
         $val_for_update = array(); // Отдельный массив для формирования строки обновления записей
 
-        foreach($arr_val as $k => $v){
+        foreach ($arr_val as $k => $v) {
             $value_key = explode(' ', $k);
             $value_key = $value_key[0];
             $cols[] = "`$value_key`";
-            $masks[] = ':'.$value_key;
+            $masks[] = ':' . $value_key;
 
             $val_for_update[] = "`$value_key`=:$value_key";
             $this->values_for_exec[":$value_key"] = $v;
         }
-        if($this->type == "insert"){ // Разделяем формирование строк запроса
-            $cols_all = implode(',',$cols);
-            $masks_all = implode(',',$masks);
+        if ($this->type == "insert") { // Разделяем формирование строк запроса
+            $cols_all = implode(',', $cols);
+            $masks_all = implode(',', $masks);
             $this->sql_query .= "($cols_all) VALUES ($masks_all)";
-        }else if($this->type == 'update'){
-            $this->sql_query .= "SET ";
-            $this->sql_query .= implode(',',$val_for_update);
+        } else {
+            if ($this->type == 'update') {
+                $this->sql_query .= "SET ";
+                $this->sql_query .= implode(',', $val_for_update);
+            }
         }
         return $this;
     }
 
-    public function delete(){ // Метод для удаления записей из таблицы
+    public function delete()
+    { // Метод для удаления записей из таблицы
         $this->sql_query = "DELETE FROM `$this->model`"; // Формируем запрос
         $this->type = 'delete';
         return $this;
     }
 
-    public function group_by($field){
+    public function group_by($field)
+    {
         $this->sql_query .= " GROUP BY " . $field;
         return $this;
     }
 
-    public function order_by($val, $type){ // Создаем метод для выборки данных, отсортированных определенным образом
+    public function order_by($val, $type)
+    { // Создаем метод для выборки данных, отсортированных определенным образом
         $this->sql_query .= "ORDER BY `$val` $type"; // Модифицируем строку запроса
         return $this;
     }
 
-    public function limit($from, $to = NULL){ // Создаем метод для выборки определенного количества записей
-        if($to == NULL){
+    public function limit($from, $to = null)
+    { // Создаем метод для выборки определенного количества записей
+        if ($to == null) {
             $res_str = $from;
-        }else{
+        } else {
             $res_str = $from . "," . $to;
         }
         $this->sql_query .= " LIMIT " . $res_str; // Модифицируем строку запроса
@@ -202,17 +224,19 @@ class ORM extends DB
     }
 
     // Возвращает ID последней вставленной строки
-    public function lastInsertId(){
+    public function lastInsertId()
+    {
         return $this->pdo->lastInsertId();
     }
 
     // Получить массив записей
-    public function all(){
+    public function all()
+    {
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
-        if($q->errorCode() != PDO::ERR_NONE){
+        if ($q->errorCode() != PDO::ERR_NONE) {
             $info = $q->errorInfo();
             return $info;
         }
@@ -220,12 +244,13 @@ class ORM extends DB
     }
 
     // Получить одну запись
-    public function get(){
+    public function get()
+    {
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
-        if($q->errorCode() != PDO::ERR_NONE){
+        if ($q->errorCode() != PDO::ERR_NONE) {
             $info = $q->errorInfo();
             return $info;
         }
@@ -233,12 +258,13 @@ class ORM extends DB
     }
 
     // Получить одно значение
-    public function getOne(){
+    public function getOne()
+    {
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
-        if($q->errorCode() != PDO::ERR_NONE){
+        if ($q->errorCode() != PDO::ERR_NONE) {
             $info = $q->errorInfo();
             return $info;
         }
@@ -248,12 +274,13 @@ class ORM extends DB
     }
 
     // Выполнить запрос не требующий ответа
-    public function execute(){
+    public function execute()
+    {
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
-        if($q->errorCode() != PDO::ERR_NONE){
+        if ($q->errorCode() != PDO::ERR_NONE) {
             $info = $q->errorInfo();
             return $info;
         }
@@ -261,12 +288,13 @@ class ORM extends DB
     }
 
     // Получить ответ в виде объекта модели
-    public function getModel(){
+    public function getModel()
+    {
         $q = $this->pdo->prepare($this->sql_query);
         $status = $q->execute($this->values_for_exec);
         $this->set_default(); // Сбрасываем все значения
 
-        if($q->errorCode() != PDO::ERR_NONE){
+        if ($q->errorCode() != PDO::ERR_NONE) {
             $info = $q->errorInfo();
             return $info;
         }

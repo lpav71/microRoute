@@ -1,0 +1,23 @@
+{
+  "name": "vendor_name/micro-route.local",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "admin",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "ext-pdo": "*"
+  },
+  "autoload": {
+    "classmap": [
+      "Controllers/",
+      "Models/",
+      "System/",
+      "Views/"
+    ]
+  }
+}

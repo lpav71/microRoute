@@ -4,6 +4,7 @@
 namespace System;
 
 use PDO;
+
 class DB
 {
     public $pdo;
@@ -16,14 +17,15 @@ class DB
         return $this->pdo;
     }
 
-    public function Connect() {
+    public function Connect()
+    {
         $data = Configurator::GetDBConfiguration();
 
         $user = $data['DBUSER'];
         $pass = $data['DBPASS'];
         $host = $data['DBHOST'];
-        $db   = $data['DBNAME'];
-        
+        $db = $data['DBNAME'];
+
         $this->pdo = new PDO("mysql:dbname=$db;host=$host", $user, $pass);
     }
 }
