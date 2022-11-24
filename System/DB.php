@@ -19,12 +19,13 @@ class DB
 
     public function Connect()
     {
-        $data = Configurator::GetDBConfiguration();
+        $config = json_decode(file_get_contents('config.json'), true) ;
 
-        $user = $data['DBUSER'];
-        $pass = $data['DBPASS'];
-        $host = $data['DBHOST'];
-        $db = $data['DBNAME'];
+
+        $user = $config["database"]["DBUSER"];
+        $pass = $config["database"]["DBPASS"];
+        $host = $config["database"]["DBHOST"];
+        $db = $config["database"]["DBNAME"];
 
         $this->pdo = new PDO("mysql:dbname=$db;host=$host", $user, $pass);
     }

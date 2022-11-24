@@ -1,0 +1,8 @@
+{
+  "database" : {
+    "DBUSER" : "mysql",
+    "DBPASS" : "mysql",
+    "DBHOST" : "127.0.0.1",
+    "DBNAME" : "bd"
+  }
+}
